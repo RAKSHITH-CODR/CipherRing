@@ -2,6 +2,9 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
+// Use environment variable or fallback to localhost
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function UploadCSV({ setOutput, setLoading }) {
   const [file, setFile] = useState(null);
   const [dragOver, setDragOver] = useState(false);
@@ -41,7 +44,7 @@ export default function UploadCSV({ setOutput, setLoading }) {
         });
       }, 200);
 
-      const res = await axios.post('http://localhost:5000/upload', formData);
+      const res = await axios.post(`${API_URL}/upload`, formData);
       
       clearInterval(progressInterval);
       setUploadProgress(100);
@@ -53,7 +56,16 @@ export default function UploadCSV({ setOutput, setLoading }) {
       }, 500);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.error || 'Analysis failed. Please try again.');
+      // Better error message
+      let errorMsg = 'Analysis failed. ';
+      if (err.code === 'ERR_NETWORK') {
+        errorMsg += 'Backend server not reachable. Make sure backend is running on port 5000.';
+      } else if (err.response?.data?.error) {
+        errorMsg += err.response.data.error;
+      } else {
+        errorMsg += 'Please try again.';
+      }
+      setError(errorMsg);
       setLoading(false);
       setIsUploading(false);
     }
