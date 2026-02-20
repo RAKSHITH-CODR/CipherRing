@@ -7,7 +7,7 @@ A real-time + batch financial forensics system that detects money mule networks 
 
 ## 🚀 Overview
 
-FinGraph Sentinel analyzes transaction data from CSV uploads or live streams to uncover complex fraud structures such as circular fund routing, smurfing networks, and layered shell accounts.  
+CipherRing analyzes transaction data from CSV uploads or live streams to uncover complex fraud structures such as circular fund routing, smurfing networks, and layered shell accounts.  
 The system visualizes suspicious activity through an interactive graph and generates structured investigation-ready JSON output.
 
 ---
