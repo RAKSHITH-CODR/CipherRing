@@ -10,6 +10,7 @@ import UploadCSV from './components/uploadCSV.jsx';
 import GraphView from './components/GraphView.jsx';
 import FraudTable from './components/FraudTable.jsx';
 import DownloadJSON from './components/DownloadJSON.jsx';
+import LiveDetector from './components/LiveDetector.jsx';
 
 // ============ Background Effects ============
 function MatrixRain() {
@@ -108,6 +109,12 @@ function StatCard({ label, value, icon, color, delay }) {
 // ============ Detector Page (Main Analysis UI) ============
 function DetectorPage({ output, setOutput, loading, setLoading }) {
   const [activeTab, setActiveTab] = useState('graph');
+  const [detectionMode, setDetectionMode] = useState('batch'); // 'batch' or 'live'
+
+  // Scroll to top when switching detection modes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [detectionMode]);
 
   return (
     <div className="pt-24 pb-12 px-6 max-w-7xl mx-auto relative z-10">
@@ -151,55 +158,191 @@ function DetectorPage({ output, setOutput, loading, setLoading }) {
         </motion.p>
       </motion.div>
 
+      {/* Mode Toggle - Enhanced for visual impact */}
       <motion.div 
-        className="mb-12"
+        className="flex justify-center mb-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+        transition={{ delay: 0.2 }}
       >
-        <UploadCSV setOutput={setOutput} setLoading={setLoading} />
+        <div className="relative">
+          {/* Background glow */}
+          <motion.div 
+            className="absolute -inset-2 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl"
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          />
+          <div className="relative inline-flex p-2 bg-slate-800/90 backdrop-blur-xl rounded-2xl border border-slate-600/50 shadow-2xl shadow-cyan-500/10 overflow-visible">
+            {[
+              { 
+                id: 'batch', 
+                label: 'Batch Analysis', 
+                icon: '📊', 
+                description: 'Upload & analyze complete dataset',
+                gradient: 'from-cyan-500 to-blue-600',
+                glow: 'cyan'
+              },
+              { 
+                id: 'live', 
+                label: 'Live Detection', 
+                icon: '⚡', 
+                description: 'Real-time streaming with animated flow',
+                gradient: 'from-purple-500 via-pink-500 to-rose-500',
+                glow: 'purple',
+                isNew: true
+              }
+            ].map((mode) => (
+              <motion.button
+                key={mode.id}
+                onClick={() => setDetectionMode(mode.id)}
+                className={`relative group px-6 py-4 rounded-xl font-mono text-sm transition-all ${
+                  detectionMode === mode.id 
+                    ? `bg-gradient-to-r ${mode.gradient} text-white`
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                style={{ overflow: 'visible' }}
+                whileHover={{ scale: detectionMode !== mode.id ? 1.02 : 1 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {/* Active mode animated background */}
+                {detectionMode === mode.id && (
+                  <>
+                    <motion.div 
+                      className="absolute inset-0 opacity-30 rounded-xl"
+                      style={{ 
+                        background: `radial-gradient(circle at 50% 50%, white 0%, transparent 70%)` 
+                      }}
+                      animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.1, 0.3] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                    {/* Shimmer effect - contained within overflow-hidden wrapper */}
+                    <div className="absolute inset-0 rounded-xl overflow-hidden">
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        animate={{ x: ['-100%', '100%'] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                      />
+                    </div>
+                  </>
+                )}
+                
+                {/* Hover background for inactive */}
+                {detectionMode !== mode.id && (
+                  <motion.div 
+                    className="absolute inset-0 bg-slate-700/0 group-hover:bg-slate-700/50 transition-colors rounded-xl"
+                  />
+                )}
+
+                {/* Content - Simple label */}
+                <div className="relative flex items-center gap-2">
+                  <motion.span 
+                    className="text-2xl"
+                    animate={detectionMode === mode.id ? { 
+                      scale: [1, 1.2, 1],
+                      rotate: mode.id === 'live' ? [0, 10, -10, 0] : 0
+                    } : {}}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    {mode.icon}
+                  </motion.span>
+                  <span className="font-bold text-base">{mode.label}</span>
+                </div>
+
+                {/* NEW badge - shows on hover */}
+                {mode.isNew && (
+                  <span 
+                    className="absolute -top-3 -right-3 px-2 py-0.5 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full text-[10px] font-bold text-white shadow-lg shadow-emerald-500/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50"
+                  >
+                    ✨ NEW
+                  </span>
+                )}
+
+                {/* Hover tooltip for description */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50">
+                  <div className="px-3 py-1.5 bg-slate-900 border border-slate-600 rounded-lg shadow-xl whitespace-nowrap">
+                    <span className="text-xs text-slate-300">{mode.description}</span>
+                  </div>
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 border-l border-t border-slate-600 rotate-45" />
+                </div>
+
+                {/* Active indicator dot */}
+                {detectionMode === mode.id && (
+                  <motion.div 
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-white/50"
+                    layoutId="activeIndicator"
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  />
+                )}
+              </motion.button>
+            ))}
+          </div>
+        </div>
       </motion.div>
 
+      {/* Render based on mode */}
       <AnimatePresence mode="wait">
-        {loading && (
-          <motion.div 
-            className="flex flex-col items-center justify-center py-24"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            key="loader"
+        {detectionMode === 'live' ? (
+          <motion.div
+            key="live"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
           >
-            <div className="relative w-32 h-32">
-              <motion.div className="absolute inset-0 border-4 border-cyan-500/20 rounded-full" />
-              <motion.div 
-                className="absolute inset-0 border-4 border-transparent border-t-cyan-500 rounded-full"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              />
-              <motion.div 
-                className="absolute inset-4 border-4 border-transparent border-t-purple-500 border-b-purple-500 rounded-full"
-                animate={{ rotate: -360 }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-              />
-              <motion.div 
-                className="absolute inset-8 border-4 border-transparent border-t-pink-500 rounded-full"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              />
-              <motion.div 
-                className="absolute inset-0 flex items-center justify-center"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              >
-                <span className="text-3xl">🔍</span>
-              </motion.div>
+            <LiveDetector />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="batch"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 50 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="mb-12">
+              <UploadCSV setOutput={setOutput} setLoading={setLoading} />
             </div>
-            <motion.div 
-              className="mt-8 text-xl font-mono text-cyan-400"
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              SCANNING TRANSACTIONS...
+
+            <AnimatePresence mode="wait">
+              {loading && (
+                <motion.div 
+                  className="flex flex-col items-center justify-center py-24"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  key="loader"
+                >
+                  <div className="relative w-32 h-32">
+                    <motion.div className="absolute inset-0 border-4 border-cyan-500/20 rounded-full" />
+                    <motion.div 
+                      className="absolute inset-0 border-4 border-transparent border-t-cyan-500 rounded-full"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    />
+                    <motion.div 
+                      className="absolute inset-4 border-4 border-transparent border-t-purple-500 border-b-purple-500 rounded-full"
+                      animate={{ rotate: -360 }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                    />
+                    <motion.div 
+                      className="absolute inset-8 border-4 border-transparent border-t-pink-500 rounded-full"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                    />
+                    <motion.div 
+                      className="absolute inset-0 flex items-center justify-center"
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                    >
+                      <span className="text-3xl">🔍</span>
+                    </motion.div>
+                  </div>
+                  <motion.div 
+                    className="mt-8 text-xl font-mono text-cyan-400"
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    SCANNING TRANSACTIONS...
             </motion.div>
             <motion.div className="flex gap-1 mt-4">
               {[0, 1, 2, 3, 4].map(i => (
@@ -250,7 +393,7 @@ function DetectorPage({ output, setOutput, loading, setLoading }) {
               </motion.div>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
               <StatCard 
                 label="Accounts Scanned" 
                 value={output.summary.total_accounts_analyzed} 
@@ -264,6 +407,13 @@ function DetectorPage({ output, setOutput, loading, setLoading }) {
                 icon="🚨" 
                 color="from-red-500 to-pink-500"
                 delay={0.2}
+              />
+              <StatCard 
+                label="FP Filtered" 
+                value={output.summary.false_positives_filtered || 0} 
+                icon="🛡️" 
+                color="from-green-500 to-emerald-500"
+                delay={0.25}
               />
               <StatCard 
                 label="Fraud Networks" 
@@ -356,6 +506,9 @@ function DetectorPage({ output, setOutput, loading, setLoading }) {
           </motion.div>
         </motion.div>
       )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -373,6 +526,11 @@ export default function App() {
     else if (output) setSystemStatus('THREAT_DETECTED');
     else setSystemStatus('READY');
   }, [loading, output]);
+
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
 
   const handleGetStarted = () => {
     setCurrentPage('detector');

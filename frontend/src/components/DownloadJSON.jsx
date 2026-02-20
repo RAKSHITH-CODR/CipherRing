@@ -86,6 +86,11 @@ export default function DownloadJSON({ data }) {
               <span className="text-amber-400">{data.summary.suspicious_accounts_flagged}</span>
             </div>
             <div className="pl-8">
+              <span className="text-cyan-400">"false_positives_filtered"</span>
+              <span className="text-slate-500">: </span>
+              <span className="text-green-400">{data.summary.false_positives_filtered || 0}</span>
+            </div>
+            <div className="pl-8">
               <span className="text-cyan-400">"rings_detected"</span>
               <span className="text-slate-500">: </span>
               <span className="text-red-400">{data.summary.fraud_rings_detected}</span>
