@@ -54,18 +54,15 @@ export default function Header({ currentPage, setCurrentPage, systemStatus }) {
             whileTap={{ scale: 0.98 }}
           >
             <motion.div 
-              className="relative w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center"
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+              className="relative w-10 h-10 rounded-full overflow-hidden"
+              whileHover={{ scale: 1.1 }}
+              transition={{ duration: 0.2 }}
             >
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl"
-                animate={{ opacity: [1, 0.5, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
+              <img 
+                src={`${import.meta.env.BASE_URL}logo.png`}
+                alt="CipherRing Logo" 
+                className="w-full h-full object-cover rounded-full"
               />
-              <svg className="w-5 h-5 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
             </motion.div>
             <div className="hidden sm:block">
               <div className="flex items-center gap-1">

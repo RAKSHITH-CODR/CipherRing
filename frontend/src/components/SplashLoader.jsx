@@ -133,9 +133,9 @@ export default function SplashLoader({ onComplete }) {
                 </svg>
               </motion.div>
 
-              {/* Core icon */}
+              {/* Core logo - no rotation */}
               <motion.div 
-                className="w-40 h-40 bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 rounded-3xl flex items-center justify-center relative overflow-hidden"
+                className="w-40 h-40 rounded-full flex items-center justify-center relative overflow-hidden"
                 animate={{ 
                   boxShadow: [
                     '0 0 30px rgba(6,182,212,0.3)',
@@ -145,14 +145,11 @@ export default function SplashLoader({ onComplete }) {
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <motion.div 
-                  className="absolute inset-0 bg-gradient-to-t from-transparent to-white/20"
-                  animate={{ opacity: [0.3, 0.5, 0.3] }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                <img 
+                  src={`${import.meta.env.BASE_URL}logo.png`}
+                  alt="CipherRing Logo" 
+                  className="w-full h-full object-cover rounded-full"
                 />
-                <svg className="w-20 h-20 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
               </motion.div>
             </motion.div>
           )}
