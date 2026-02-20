@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SplashLoader from './components/SplashLoader.jsx';
 import Header from './components/Header.jsx';
@@ -106,10 +106,154 @@ function StatCard({ label, value, icon, color, delay }) {
   );
 }
 
+// ============ Threat Alert Popup ============
+function ThreatAlert({ alerts, onDismiss }) {
+  return (
+    <div className="fixed top-24 right-6 z-50 flex flex-col gap-3 max-w-sm">
+      <AnimatePresence>
+        {alerts.map((alert, idx) => (
+          <motion.div
+            key={alert.id}
+            initial={{ opacity: 0, x: 100, scale: 0.8 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 100, scale: 0.8 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+            className="relative overflow-hidden"
+          >
+            {/* Glow effect */}
+            <motion.div 
+              className={`absolute -inset-1 ${alert.type === 'ring' ? 'bg-red-500/30' : 'bg-amber-500/30'} rounded-xl blur-xl`}
+              animate={{ opacity: [0.5, 0.8, 0.5] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            />
+            
+            <div className={`relative bg-slate-900/95 backdrop-blur-xl border ${
+              alert.type === 'ring' ? 'border-red-500/50' : 'border-amber-500/50'
+            } rounded-xl p-4 shadow-2xl`}>
+              {/* Scanning line */}
+              <motion.div 
+                className={`absolute top-0 left-0 right-0 h-0.5 ${
+                  alert.type === 'ring' ? 'bg-gradient-to-r from-transparent via-red-500 to-transparent' : 'bg-gradient-to-r from-transparent via-amber-500 to-transparent'
+                }`}
+                animate={{ x: ['-100%', '100%'] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+              />
+              
+              <div className="flex items-start gap-3">
+                <motion.div 
+                  className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
+                    alert.type === 'ring' ? 'bg-red-500/20' : 'bg-amber-500/20'
+                  }`}
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 0.8, repeat: Infinity }}
+                >
+                  <span className="text-xl">{alert.type === 'ring' ? '🕸️' : '⚠️'}</span>
+                </motion.div>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <motion.div 
+                      className={`w-2 h-2 rounded-full ${alert.type === 'ring' ? 'bg-red-500' : 'bg-amber-500'}`}
+                      animate={{ opacity: [1, 0.3, 1] }}
+                      transition={{ duration: 0.5, repeat: Infinity }}
+                    />
+                    <span className={`text-xs font-mono font-bold ${
+                      alert.type === 'ring' ? 'text-red-400' : 'text-amber-400'
+                    }`}>
+                      {alert.type === 'ring' ? 'FRAUD RING DETECTED' : 'HIGH-RISK THREAT'}
+                    </span>
+                  </div>
+                  <p className="text-white text-sm font-medium">{alert.title}</p>
+                  <p className="text-slate-400 text-xs font-mono mt-1">{alert.detail}</p>
+                </div>
+                
+                <motion.button
+                  onClick={() => onDismiss(alert.id)}
+                  className="flex-shrink-0 text-slate-500 hover:text-white transition-colors"
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  ✕
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ============ Detector Page (Main Analysis UI) ============
 function DetectorPage({ output, setOutput, loading, setLoading }) {
   const [activeTab, setActiveTab] = useState('graph');
   const [detectionMode, setDetectionMode] = useState('batch'); // 'batch' or 'live'
+  const [alerts, setAlerts] = useState([]);
+  const lastOutputRef = useRef(null);
+
+  // Generate threat alerts when new output arrives
+  useEffect(() => {
+    if (!output) {
+      lastOutputRef.current = null;
+      setAlerts([]);
+      return;
+    }
+    
+    // Check if this is actually new output (different scan)
+    const outputKey = `${output.summary?.total_accounts_analyzed}-${output.summary?.processing_time_seconds}-${output.fraud_rings?.length}`;
+    if (lastOutputRef.current === outputKey) return;
+    
+    // New scan detected - show alerts
+    lastOutputRef.current = outputKey;
+    setAlerts([]); // Clear any existing alerts first
+    
+    const newAlerts = [];
+    let alertId = Date.now(); // Use timestamp for unique IDs
+    
+    // Check for fraud rings
+    if (output.fraud_rings && output.fraud_rings.length > 0) {
+      const highRiskRings = output.fraud_rings.filter(r => r.risk_score >= 70);
+      if (highRiskRings.length > 0) {
+        newAlerts.push({
+          id: alertId++,
+          type: 'ring',
+          title: `${output.fraud_rings.length} Fraud Ring${output.fraud_rings.length > 1 ? 's' : ''} Detected`,
+          detail: `${highRiskRings.length} high-risk pattern${highRiskRings.length > 1 ? 's' : ''} identified`
+        });
+      }
+    }
+    
+    // Check for high suspicion accounts (score > 80)
+    if (output.suspicious_accounts && output.suspicious_accounts.length > 0) {
+      const criticalThreats = output.suspicious_accounts.filter(a => a.suspicion_score > 80);
+      if (criticalThreats.length > 0) {
+        newAlerts.push({
+          id: alertId++,
+          type: 'threat',
+          title: `${criticalThreats.length} Critical Threat${criticalThreats.length > 1 ? 's' : ''} Found`,
+          detail: `Suspicion scores exceeding 80`
+        });
+      }
+    }
+    
+    if (newAlerts.length > 0) {
+      // Stagger the alerts
+      newAlerts.forEach((alert, idx) => {
+        setTimeout(() => {
+          setAlerts(prev => [...prev, alert]);
+        }, idx * 400);
+      });
+      
+      // Auto-dismiss after 8 seconds
+      setTimeout(() => {
+        setAlerts([]);
+      }, 8000);
+    }
+  }, [output]);
+
+  const dismissAlert = (id) => {
+    setAlerts(prev => prev.filter(a => a.id !== id));
+  };
 
   // Scroll to top when switching detection modes
   useEffect(() => {
@@ -117,6 +261,10 @@ function DetectorPage({ output, setOutput, loading, setLoading }) {
   }, [detectionMode]);
 
   return (
+    <>
+      {/* Threat Alert Popups */}
+      <ThreatAlert alerts={alerts} onDismiss={dismissAlert} />
+      
     <div className="pt-24 pb-12 px-6 max-w-7xl mx-auto relative z-10">
       <motion.div 
         className="text-center mb-12"
@@ -510,6 +658,7 @@ function DetectorPage({ output, setOutput, loading, setLoading }) {
         )}
       </AnimatePresence>
     </div>
+    </>
   );
 }
 

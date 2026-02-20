@@ -1,6 +1,30 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
+// Risk Level Badge Component
+const RiskBadge = ({ score, size = 'md' }) => {
+  const getRiskLevel = (score) => {
+    if (score >= 61) return { label: 'HIGH RISK', bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/50', glow: 'shadow-red-500/20' };
+    if (score >= 31) return { label: 'MEDIUM RISK', bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/50', glow: 'shadow-amber-500/20' };
+    return { label: 'LOW RISK', bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/50', glow: 'shadow-emerald-500/20' };
+  };
+  
+  const risk = getRiskLevel(score);
+  const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-[10px]' : size === 'lg' ? 'px-4 py-1.5 text-sm' : 'px-3 py-1 text-xs';
+  
+  return (
+    <motion.span 
+      className={`${sizeClasses} ${risk.bg} ${risk.text} ${risk.border} border rounded-full font-mono font-bold inline-flex items-center gap-1.5 shadow-lg ${risk.glow}`}
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      whileHover={{ scale: 1.05 }}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${risk.text.replace('text-', 'bg-')}`} />
+      {risk.label}
+    </motion.span>
+  );
+};
+
 export default function FraudTable({ data }) {
   const [sortBy, setSortBy] = useState('risk_score');
   const [sortOrder, setSortOrder] = useState('desc');
@@ -16,8 +40,8 @@ export default function FraudTable({ data }) {
   };
 
   const getRiskStyle = (score) => {
-    if (score >= 80) return 'text-red-400';
-    if (score >= 60) return 'text-amber-400';
+    if (score >= 61) return 'text-red-400';
+    if (score >= 31) return 'text-amber-400';
     return 'text-emerald-400';
   };
 
@@ -106,9 +130,12 @@ export default function FraudTable({ data }) {
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <span className={`text-2xl font-bold font-mono ${getRiskStyle(ring.risk_score)}`}>
-                      {ring.risk_score}
-                    </span>
+                    <div className="flex flex-col items-start gap-1">
+                      <span className={`text-2xl font-bold font-mono ${getRiskStyle(ring.risk_score)}`}>
+                        {ring.risk_score}
+                      </span>
+                      <RiskBadge score={ring.risk_score} size="sm" />
+                    </div>
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex flex-wrap gap-1.5 max-w-md">
@@ -159,16 +186,19 @@ export default function FraudTable({ data }) {
                   <span className="font-mono text-xs text-slate-400 break-all">
                     {acc.account_id.length > 16 ? acc.account_id.slice(0, 14) + '..' : acc.account_id}
                   </span>
-                  <span className={`text-xl font-bold font-mono ${getRiskStyle(acc.suspicion_score)}`}>
-                    {acc.suspicion_score}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={`text-xl font-bold font-mono ${getRiskStyle(acc.suspicion_score)}`}>
+                      {acc.suspicion_score}
+                    </span>
+                    <RiskBadge score={acc.suspicion_score} size="sm" />
+                  </div>
                 </div>
                 
                 <div className="h-1 bg-slate-700 rounded-full overflow-hidden mb-3">
                   <motion.div 
                     className={`h-full ${
-                      acc.suspicion_score >= 80 ? 'bg-red-500' : 
-                      acc.suspicion_score >= 60 ? 'bg-amber-500' : 'bg-emerald-500'
+                      acc.suspicion_score >= 61 ? 'bg-red-500' : 
+                      acc.suspicion_score >= 31 ? 'bg-amber-500' : 'bg-emerald-500'
                     }`}
                     initial={{ width: 0 }}
                     animate={{ width: `${acc.suspicion_score}%` }}
