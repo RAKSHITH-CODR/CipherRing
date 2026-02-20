@@ -12,6 +12,24 @@ export default function DevelopersPage() {
       linkedin: '#',
       skills: ['React', 'Node.js', 'Graph Algorithms', 'Python']
     },
+    {
+      name: 'Kanchika',
+      role: 'Full Stack Developer',
+      avatar: '👨‍💻',
+      bio: 'Passionate about building innovative solutions for real-world problems.',
+      github: '/',
+      linkedin: '#',
+      skills: ['React', 'Node.js', 'Graph Algorithms', 'Python']
+    },
+    {
+      name: 'Harshitha',
+      role: 'Full Stack Developer',
+      avatar: '👨‍💻',
+      bio: 'Passionate about building innovative solutions for real-world problems.',
+      github: '/',
+      linkedin: '#',
+      skills: ['React', 'Node.js', 'Graph Algorithms', 'Python']
+    },
     // Add more team members here
     // {
     //   name: 'Team Member 2',
