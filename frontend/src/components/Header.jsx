@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function Header({ currentPage, setCurrentPage, systemStatus }) {
+export default function Header({ currentPage, setCurrentPage, systemStatus, onLogout }) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -139,6 +139,21 @@ export default function Header({ currentPage, setCurrentPage, systemStatus }) {
               <span className="text-xs font-mono">GITHUB</span>
             </motion.a>
 
+            {/* Logout button */}
+            {onLogout && (
+              <motion.button
+                onClick={onLogout}
+                className="hidden sm:flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg hover:bg-red-500/20 hover:border-red-500/50 transition-colors text-red-400"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span className="text-xs font-mono">LOGOUT</span>
+              </motion.button>
+            )}
+
             {/* Mobile menu button */}
             <motion.button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -194,6 +209,20 @@ export default function Header({ currentPage, setCurrentPage, systemStatus }) {
                   </svg>
                   VIEW ON GITHUB
                 </a>
+                {onLogout && (
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onLogout();
+                    }}
+                    className="flex items-center gap-2 w-full px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 font-mono text-sm border border-red-500/20"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    LOGOUT
+                  </button>
+                )}
               </div>
             </motion.div>
           )}

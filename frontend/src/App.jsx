@@ -11,6 +11,9 @@ import GraphView from './components/GraphView.jsx';
 import FraudTable from './components/FraudTable.jsx';
 import DownloadJSON from './components/DownloadJSON.jsx';
 import LiveDetector from './components/LiveDetector.jsx';
+import AuthPage from './components/AuthPage.jsx';
+import SessionTimer from './components/SessionTimer.jsx';
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 
 // ============ Background Effects ============
 function MatrixRain() {
@@ -662,8 +665,9 @@ function DetectorPage({ output, setOutput, loading, setLoading }) {
   );
 }
 
-// ============ Main App Component ============
-export default function App() {
+// ============ Main App Content (Authenticated) ============
+function AppContent() {
+  const { isAuthenticated, loading: authLoading, logout } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
   const [currentPage, setCurrentPage] = useState('home');
   const [output, setOutput] = useState(null);
@@ -700,6 +704,24 @@ export default function App() {
     }
   };
 
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <motion.div
+          className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        />
+      </div>
+    );
+  }
+
+  // Show auth page if not authenticated
+  if (!isAuthenticated) {
+    return <AuthPage onAuthSuccess={() => setShowSplash(true)} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
       {/* Splash Screen */}
@@ -732,7 +754,13 @@ export default function App() {
             currentPage={currentPage} 
             setCurrentPage={setCurrentPage}
             systemStatus={systemStatus}
+            onLogout={logout}
           />
+
+          {/* Session Timer */}
+          <div className="fixed top-24 right-6 z-40">
+            <SessionTimer />
+          </div>
 
           {/* Page Content */}
           <main className="min-h-screen relative z-10">
@@ -754,5 +782,14 @@ export default function App() {
         </>
       )}
     </div>
+  );
+}
+
+// ============ Main App Wrapper with Auth Provider ============
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

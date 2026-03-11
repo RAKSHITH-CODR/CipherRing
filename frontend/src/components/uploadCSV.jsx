@@ -44,7 +44,9 @@ export default function UploadCSV({ setOutput, setLoading }) {
         });
       }, 200);
 
-      const res = await axios.post(`${API_URL}/upload`, formData);
+      const res = await axios.post(`${API_URL}/upload`, formData, {
+        withCredentials: true
+      });
       
       clearInterval(progressInterval);
       setUploadProgress(100);
